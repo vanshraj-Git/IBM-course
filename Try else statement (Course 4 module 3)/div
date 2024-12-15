@@ -1,1 +1,9 @@
-
+def complex_calculation(num):
+    try:
+        result = num / (num - 5)
+        print (f"Result: {result}")
+    except Exception:
+        print("An error occurred during calculation.")
+# Test case
+user_input = float(input("Enter a number: "))
+complex_calculation(user_input)
