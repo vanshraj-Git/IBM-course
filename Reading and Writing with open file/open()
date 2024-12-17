@@ -1,1 +1,27 @@
+import requests
+
+filename = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0101EN-SkillsNetwork/labs/Module%204/data/example1.txt"
+
+def download_and_open(url, local_filename):
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(local_filename, "wb") as f:
+            f.write(response.content)
+        print("File downloaded successfully.")
+        
+        # Open and read the file
+        with open(local_filename, "r") as file:
+            content = file.read()
+            print("\nFile Content:\n") 
+            print(content)
+            
+            # Access file properties
+            print("\nFile Properties:")
+            print(f"Name: {file.name}")
+            print(f"Mode: {file.mode}")
+    else:
+        print(f"Failed to download file: {response.status_code}")
+
+download_and_open(filename, "example1.txt")
+print("done")
 
