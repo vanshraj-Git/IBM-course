@@ -1,1 +1,329 @@
+# import pandas as pd # import library to read data into dataframe
+# pd.set_option("display.max_columns", None)
+# import numpy as np # import numpy library
+# import re # import library for regular expression
+# import random # library for random number generation
+
+# from pyodide.http import pyfetch
+ 
+# async def download(url, filename):
+#     response = await pyfetch(url)
+#     if response.status == 200:
+#         with open(filename, "wb") as f:
+#             f.write(await response.bytes())
+ 
+# path = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-DS0103EN-SkillsNetwork/labs/Module%202/recipes.csv"
+ 
+# #you will need to download the dataset; if you are running locally, please comment out the following 
+# await download(path, "recipes.csv")
+
+# recipes = pd.read_csv("recipes.csv")
+
+# print("Data read into dataframe!") # takes about 30 seconds
+# # fix name of the column displaying the cuisine
+# column_names = recipes.columns.values
+# column_names[0] = "cuisine"
+# recipes.columns = column_names
+
+# # convert cuisine names to lower case
+# recipes["cuisine"] = recipes["cuisine"].str.lower()
+
+# # make the cuisine names consistent
+# recipes.loc[recipes["cuisine"] == "austria", "cuisine"] = "austrian"
+# recipes.loc[recipes["cuisine"] == "belgium", "cuisine"] = "belgian"
+# recipes.loc[recipes["cuisine"] == "china", "cuisine"] = "chinese"
+# recipes.loc[recipes["cuisine"] == "canada", "cuisine"] = "canadian"
+# recipes.loc[recipes["cuisine"] == "netherlands", "cuisine"] = "dutch"
+# recipes.loc[recipes["cuisine"] == "france", "cuisine"] = "french"
+# recipes.loc[recipes["cuisine"] == "germany", "cuisine"] = "german"
+# recipes.loc[recipes["cuisine"] == "india", "cuisine"] = "indian"
+# recipes.loc[recipes["cuisine"] == "indonesia", "cuisine"] = "indonesian"
+# recipes.loc[recipes["cuisine"] == "iran", "cuisine"] = "iranian"
+# recipes.loc[recipes["cuisine"] == "italy", "cuisine"] = "italian"
+# recipes.loc[recipes["cuisine"] == "japan", "cuisine"] = "japanese"
+# recipes.loc[recipes["cuisine"] == "israel", "cuisine"] = "jewish"
+# recipes.loc[recipes["cuisine"] == "korea", "cuisine"] = "korean"
+# recipes.loc[recipes["cuisine"] == "lebanon", "cuisine"] = "lebanese"
+# recipes.loc[recipes["cuisine"] == "malaysia", "cuisine"] = "malaysian"
+# recipes.loc[recipes["cuisine"] == "mexico", "cuisine"] = "mexican"
+# recipes.loc[recipes["cuisine"] == "pakistan", "cuisine"] = "pakistani"
+# recipes.loc[recipes["cuisine"] == "philippines", "cuisine"] = "philippine"
+# recipes.loc[recipes["cuisine"] == "scandinavia", "cuisine"] = "scandinavian"
+# recipes.loc[recipes["cuisine"] == "spain", "cuisine"] = "spanish_portuguese"
+# recipes.loc[recipes["cuisine"] == "portugal", "cuisine"] = "spanish_portuguese"
+# recipes.loc[recipes["cuisine"] == "switzerland", "cuisine"] = "swiss"
+# recipes.loc[recipes["cuisine"] == "thailand", "cuisine"] = "thai"
+# recipes.loc[recipes["cuisine"] == "turkey", "cuisine"] = "turkish"
+# recipes.loc[recipes["cuisine"] == "vietnam", "cuisine"] = "vietnamese"
+# recipes.loc[recipes["cuisine"] == "uk-and-ireland", "cuisine"] = "uk-and-irish"
+# recipes.loc[recipes["cuisine"] == "irish", "cuisine"] = "uk-and-irish"
+
+
+# # remove data for cuisines with < 50 recipes:
+# recipes_counts = recipes["cuisine"].value_counts()
+# cuisines_indices = recipes_counts > 50
+
+# cuisines_to_keep = list(np.array(recipes_counts.index.values)[np.array(cuisines_indices)])
+# recipes = recipes.loc[recipes["cuisine"].isin(cuisines_to_keep)]
+
+# # convert all Yes's to 1's and the No's to 0's
+# recipes = recipes.replace(to_replace="Yes", value=1)
+# recipes = recipes.replace(to_replace="No", value=0)
+# # import decision trees scikit-learn libraries
+
+# from sklearn import tree
+# from sklearn.metrics import accuracy_score, confusion_matrix
+
+# import matplotlib.pyplot as plt
+
+# # If running locally, you can try using the graphviz library but we'll use sklearn's plot_tree method
+# # !conda install python-graphviz --yes
+# # from sklearn.tree import export_graphviz
+
+# import itertools
+# recipes.head()
+# # select subset of cuisines
+# asian_indian_recipes = recipes[recipes.cuisine.isin(["korean", "japanese", "chinese", "thai", "indian"])]
+# cuisines = asian_indian_recipes["cuisine"]
+# ingredients = asian_indian_recipes.iloc[:,1:]
+
+# bamboo_tree = tree.DecisionTreeClassifier(max_depth=3)
+# bamboo_tree.fit(ingredients, cuisines)
+
+# print("Decision tree model saved to bamboo_tree!")
+
+# # if you're using the graphviz library, you can run these lines of code. Otherwise, this is configured to use plot_tree from sklearn
+# # export_graphviz(bamboo_tree,
+# #                 feature_names=list(ingredients.columns.values),
+# #                 out_file="bamboo_tree.dot",
+# #                 class_names=np.unique(cuisines),
+# #                 filled=True,
+# #                 node_ids=True,
+# #                 special_characters=True,
+# #                 impurity=False,
+# #                 label="all",
+# #                 leaves_parallel=False)
+
+# # with open("bamboo_tree.dot") as bamboo_tree_image:
+# #     bamboo_tree_graph = bamboo_tree_image.read()
+# # graphviz.Source(bamboo_tree_graph)
+
+# plt.figure(figsize=(40,20))  # customize according to the size of your tree
+# _ = tree.plot_tree(bamboo_tree,
+#                    feature_names = list(ingredients.columns.values),
+#                    class_names=np.unique(cuisines),filled=True,
+#                    node_ids=True,
+#                    impurity=False,
+#                    label="all",
+#                    fontsize=20, rounded = True)
+# plt.show()
+# bamboo = recipes[recipes.cuisine.isin(["korean", "japanese", "chinese", "thai", "indian"])]
+# bamboo["cuisine"].value_counts()
+# # set sample size
+# sample_n = 30
+# # take 30 recipes from each cuisine
+# random.seed(1234) # set random seed
+# bamboo_test = bamboo.groupby("cuisine", group_keys=False).apply(lambda x: x.sample(sample_n))
+
+# bamboo_test_ingredients = bamboo_test.iloc[:,1:] # ingredients
+# bamboo_test_cuisines = bamboo_test["cuisine"] # corresponding cuisines or labels
+# # check that we have 30 recipes from each cuisine
+# bamboo_test["cuisine"].value_counts()
+# bamboo_test_index = bamboo.index.isin(bamboo_test.index)
+# bamboo_train = bamboo[~bamboo_test_index]
+
+# bamboo_train_ingredients = bamboo_train.iloc[:,1:] # ingredients
+# bamboo_train_cuisines = bamboo_train["cuisine"] # corresponding cuisines or labels
+# bamboo_train["cuisine"].value_counts()
+# bamboo_train_tree = tree.DecisionTreeClassifier(max_depth=15)
+# bamboo_train_tree.fit(bamboo_train_ingredients, bamboo_train_cuisines)
+
+# print("Decision tree model saved to bamboo_train_tree!")
+# # export_graphviz(bamboo_train_tree,
+# #                 feature_names=list(bamboo_train_ingredients.columns.values),
+# #                 out_file="bamboo_train_tree.dot",
+# #                 class_names=np.unique(bamboo_train_cuisines),
+# #                 filled=True,
+# #                 node_ids=True,
+# #                 special_characters=True,
+# #                 impurity=False,
+# #                 label="all",
+# #                 leaves_parallel=False)
+
+# # with open("bamboo_train_tree.dot") as bamboo_train_tree_image:
+# #     bamboo_train_tree_graph = bamboo_train_tree_image.read()
+# # graphviz.Source(bamboo_train_tree_graph)
+
+# plt.figure(figsize=(40,20))  # customize according to the size of your tree
+# _ = tree.plot_tree(bamboo_train_tree,
+#                    feature_names=list(bamboo_train_ingredients.columns.values),
+#                    class_names=np.unique(bamboo_train_cuisines),
+#                    filled=True,
+#                    node_ids=True,
+#                    impurity=False,
+#                    label="all",
+#                    fontsize=10, rounded = True)
+# plt.show()
+
+# bamboo_pred_cuisines = bamboo_train_tree.predict(bamboo_test_ingredients)
+# test_cuisines = np.unique(bamboo_test_cuisines)
+# bamboo_confusion_matrix = confusion_matrix(bamboo_test_cuisines, bamboo_pred_cuisines, labels = test_cuisines)
+# title = 'Bamboo Confusion Matrix'
+# cmap = plt.cm.Blues
+
+# plt.figure(figsize=(8, 6))
+# bamboo_confusion_matrix = (
+#     bamboo_confusion_matrix.astype('float') / bamboo_confusion_matrix.sum(axis=1)[:, np.newaxis]
+#     ) * 100
+
+# plt.imshow(bamboo_confusion_matrix, interpolation='nearest', cmap=cmap)
+# plt.title(title)
+# plt.colorbar()
+# tick_marks = np.arange(len(test_cuisines))
+# plt.xticks(tick_marks, test_cuisines)
+# plt.yticks(tick_marks, test_cuisines)
+
+# fmt = '.2f'
+# thresh = bamboo_confusion_matrix.max() / 2.
+# for i, j in itertools.product(range(bamboo_confusion_matrix.shape[0]), range(bamboo_confusion_matrix.shape[1])):
+#     plt.text(j, i, format(bamboo_confusion_matrix[i, j], fmt),
+#              horizontalalignment="center",
+#              color="white" if bamboo_confusion_matrix[i, j] > thresh else "black")
+
+# plt.tight_layout()
+# plt.ylabel('True label')
+# plt.xlabel('Predicted label')
+
+# plt.show()
+
+print("Script started")
+
+import pandas as pd  # For data handling
+import numpy as np  # For numerical operations
+import re  # For regular expressions
+import random  # For random operations
+import itertools  # For confusion matrix plotting
+import matplotlib.pyplot as plt  # For visualization
+
+from sklearn import tree  # Decision tree classifier
+from sklearn.metrics import accuracy_score, confusion_matrix  # For evaluation
+
+# Download dataset if not already present
+import os
+import requests
+
+url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-DS0103EN-SkillsNetwork/labs/Module%202/recipes.csv"
+filename = "recipes.csv"
+
+if not os.path.exists(filename):
+    print("Downloading the dataset...")
+    response = requests.get(url)
+    with open(filename, "wb") as f:
+        f.write(response.content)
+
+recipes = pd.read_csv(filename)
+print("Data read into dataframe!")
+import matplotlib
+matplotlib.use('TkAgg')  # Use TkAgg backend for interactive plotting
+
+# Fix column names
+recipes.columns.values[0] = "cuisine"
+recipes["cuisine"] = recipes["cuisine"].str.lower()
+
+# Standardize cuisine names
+standardize_map = {
+    "austria": "austrian", "belgium": "belgian", "china": "chinese",
+    "canada": "canadian", "netherlands": "dutch", "france": "french",
+    "germany": "german", "india": "indian", "indonesia": "indonesian",
+    "iran": "iranian", "italy": "italian", "japan": "japanese",
+    "israel": "jewish", "korea": "korean", "lebanon": "lebanese",
+    "malaysia": "malaysian", "mexico": "mexican", "pakistan": "pakistani",
+    "philippines": "philippine", "scandinavia": "scandinavian",
+    "spain": "spanish_portuguese", "portugal": "spanish_portuguese",
+    "switzerland": "swiss", "thailand": "thai", "turkey": "turkish",
+    "vietnam": "vietnamese", "uk-and-ireland": "uk-and-irish", "irish": "uk-and-irish"
+}
+recipes["cuisine"] = recipes["cuisine"].replace(standardize_map)
+
+# Remove cuisines with fewer than 50 recipes
+recipes_counts = recipes["cuisine"].value_counts()
+cuisines_to_keep = recipes_counts[recipes_counts > 50].index
+recipes = recipes[recipes["cuisine"].isin(cuisines_to_keep)]
+
+# Convert "Yes" to 1 and "No" to 0
+recipes = recipes.replace({"Yes": 1, "No": 0})
+
+# Select specific cuisines for decision tree modeling
+asian_indian_recipes = recipes[recipes["cuisine"].isin(["korean", "japanese", "chinese", "thai", "indian"])]
+cuisines = asian_indian_recipes["cuisine"]
+ingredients = asian_indian_recipes.iloc[:, 1:]
+
+# Train a decision tree classifier
+bamboo_tree = tree.DecisionTreeClassifier(max_depth=3)
+bamboo_tree.fit(ingredients, cuisines)
+print("Decision tree model saved to bamboo_tree!")
+
+# Plot the decision tree
+plt.figure(figsize=(40, 20))
+_ = tree.plot_tree(
+    bamboo_tree, feature_names=ingredients.columns, class_names=np.unique(cuisines),
+    filled=True, node_ids=True, impurity=False, label="all", fontsize=20, rounded=True
+)
+plt.show()
+
+# Create training and test datasets
+sample_n = 30
+random.seed(1234)
+bamboo_test = asian_indian_recipes.groupby("cuisine", group_keys=False).apply(lambda x: x.sample(sample_n))
+
+bamboo_test_ingredients = bamboo_test.iloc[:, 1:]
+bamboo_test_cuisines = bamboo_test["cuisine"]
+
+bamboo_train = asian_indian_recipes.loc[~asian_indian_recipes.index.isin(bamboo_test.index)]
+bamboo_train_ingredients = bamboo_train.iloc[:, 1:]
+bamboo_train_cuisines = bamboo_train["cuisine"]
+
+# Train a deeper decision tree
+bamboo_train_tree = tree.DecisionTreeClassifier(max_depth=15)
+bamboo_train_tree.fit(bamboo_train_ingredients, bamboo_train_cuisines)
+print("Decision tree model saved to bamboo_train_tree!")
+
+# Plot the trained tree
+plt.figure(figsize=(40, 20))
+_ = tree.plot_tree(
+    bamboo_train_tree, feature_names=bamboo_train_ingredients.columns, class_names=np.unique(bamboo_train_cuisines),
+    filled=True, node_ids=True, impurity=False, label="all", fontsize=10, rounded=True
+)
+plt.show()
+
+# Make predictions and evaluate the model
+bamboo_pred_cuisines = bamboo_train_tree.predict(bamboo_test_ingredients)
+
+bamboo_confusion_matrix = confusion_matrix(bamboo_test_cuisines, bamboo_pred_cuisines, labels=np.unique(bamboo_test_cuisines))
+bamboo_confusion_matrix = (bamboo_confusion_matrix.astype('float') / bamboo_confusion_matrix.sum(axis=1)[:, np.newaxis]) * 100
+
+# Plot the confusion matrix
+plt.figure(figsize=(8, 6))
+plt.imshow(bamboo_confusion_matrix, interpolation='nearest', cmap=plt.cm.Blues)
+plt.title('Bamboo Confusion Matrix')
+plt.colorbar()
+tick_marks = np.arange(len(np.unique(bamboo_test_cuisines)))
+plt.xticks(tick_marks, np.unique(bamboo_test_cuisines))
+plt.yticks(tick_marks, np.unique(bamboo_test_cuisines))
+
+thresh = bamboo_confusion_matrix.max() / 2.
+for i, j in itertools.product(range(bamboo_confusion_matrix.shape[0]), range(bamboo_confusion_matrix.shape[1])):
+    plt.text(j, i, f"{bamboo_confusion_matrix[i, j]:.2f}", horizontalalignment="center",
+             color="white" if bamboo_confusion_matrix[i, j] > thresh else "black")
+
+plt.tight_layout()
+plt.ylabel('True label')
+plt.xlabel('Predicted label')
+plt.show()
+import os
+print("Current working directory:", os.getcwd())
+print("Recipes file exists:", os.path.exists("recipes.csv"))
+print(recipes.head())
+print(f"Number of recipes: {len(recipes)}")
+plt.show(block=True)
 
